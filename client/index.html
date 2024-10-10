@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stripe Payment</title>
+</head>
+<body>
+    <button id="checkout-button">Pay Now</button>
+
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        // Fetch the publishable key from the backend
+        fetch('http://localhost:3000/config')
+        .then(response => response.json())
+        .then(config => {
+            const stripe = Stripe(config.publishableKey); // Initialize Stripe with the fetched publishable key
+
+            document.getElementById('checkout-button').addEventListener('click', () => {
+                fetch('http://localhost:3000/create-checkout-session', { // Ensure this matches your backend URL
+                    method: 'POST',
+                })
+                .then(response => response.json())
+                .then(session => {
+                    return stripe.redirectToCheckout({ sessionId: session.id });
+                })
+                .then(result => {
+                    if (result.error) {
+                        alert(result.error.message);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        })
+        .catch(error => console.error('Error fetching Stripe config:', error));
+    </script>
+</body>
+</html>
